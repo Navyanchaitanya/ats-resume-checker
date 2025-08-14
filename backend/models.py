@@ -1,22 +1,28 @@
-# === backend/models.py ===
+from flask_sqlalchemy import SQLAlchemy
 
-class ResumeScore:
-    def __init__(self, id, filename, score, keyword_match, formatting, readability, completeness):
-        self.id = id
-        self.filename = filename
-        self.score = score
-        self.keyword_match = keyword_match
-        self.formatting = formatting
-        self.readability = readability
-        self.completeness = completeness
+db = SQLAlchemy()
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "filename": self.filename,
-            "score": self.score,
-            "keyword_match": self.keyword_match,
-            "formatting": self.formatting,
-            "readability": self.readability,
-            "completeness": self.completeness
-        }
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    profession = db.Column(db.String(100))
+    location = db.Column(db.String(100))
+    bio = db.Column(db.Text)
+
+class ResumeAnalysis(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(120))
+    resume_text = db.Column(db.Text)
+    jd_text = db.Column(db.Text)
+    total_score = db.Column(db.Float)
+    similarity = db.Column(db.Float)
+    readability = db.Column(db.Float)
+    completeness = db.Column(db.Float)
+    formatting = db.Column(db.Float)
+    grammar_score = db.Column(db.Float)
+    grammar_issues = db.Column(db.Text)
+    matched_keywords = db.Column(db.Text)
+    missing_keywords = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)

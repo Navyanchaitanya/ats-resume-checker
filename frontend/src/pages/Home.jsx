@@ -1,56 +1,42 @@
-import React, { useState } from 'react';
-import UploadForm from '../components/UploadForm';
-import ScoreMeter from '../components/ScoreMeter';
+// frontend/src/pages/Home.jsx
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const Home = () => {
-  const [score, setScore] = useState(null);
-
   return (
-    <div className="min-h-screen flex flex-col md:flex-row text-gray-800 bg-gradient-to-br from-blue-100 via-white to-indigo-100">
-      
-      {/* Sidebar Left */}
-      <motion.div
-        initial={{ x: -80, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+    <main className="flex flex-col items-center justify-center px-4 py-20 text-center bg-gradient-to-br from-indigo-50 to-white min-h-[80vh]">
+      <motion.h1
+        className="text-4xl md:text-6xl font-extrabold text-indigo-800 mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="md:w-[40%] w-full bg-white/50 backdrop-blur-lg p-6 md:p-10 shadow-2xl border-r border-white/30"
       >
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-indigo-800 mb-2 tracking-tight">
-            🔍 Resume Analyzer
-          </h1>
-          <p className="text-sm text-gray-600">Optimize your resume for the job you want.</p>
-        </div>
+        Build. Analyze. Improve. Land Your Dream Job.
+      </motion.h1>
 
-        <UploadForm onScoreReceived={setScore} />
+      <motion.p
+        className="text-lg text-gray-700 max-w-2xl mb-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+      >
+        Our AI-powered ATS Resume Checker helps you tailor your resume to job descriptions using similarity scoring, keyword matching, grammar feedback, and more.
+      </motion.p>
 
-        <div className="mt-10 text-xs text-gray-500 text-center">
-          ✨ Build By Navyan💡
-        </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
+      >
+        <Link
+          to="/register"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-lg px-6 py-3 rounded-lg shadow-lg transition"
+        >
+          Get Started Free
+        </Link>
       </motion.div>
-
-      {/* Main Content Right */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12">
-        {score ? (
-          <ScoreMeter score={score} />
-        ) : (
-          <motion.div
-            className="text-center max-w-lg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            <h2 className="text-2xl md:text-3xl font-bold text-indigo-700 mb-4">
-              Upload a Resume & JD to Get Started
-            </h2>
-            <p className="text-gray-600">
-              Your smart resume analyzer will break down score, similarity, and important keywords.
-            </p>
-          </motion.div>
-        )}
-      </div>
-    </div>
+    </main>
   );
 };
 

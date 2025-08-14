@@ -24,3 +24,7 @@ button:disabled {
 body {
   font-family: 'Inter', sans-serif;
 }
+
+.input {
+  @apply w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-300;
+}
