@@ -7,7 +7,8 @@ This project is an **ATS-friendly resume checker** that evaluates resumes agains
 - Score resumes based on relevance
 - Support multiple resume templates
 - Generate detailed feedback
-
+## Resume Builder
+- Resume Builder Will be add soon...
 ## How to Use
 1. Clone the repository
 2. Install dependencies:
