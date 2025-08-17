@@ -52,7 +52,7 @@ const UploadForm = ({ onScoreReceived }) => {
         <textarea
     value={jd}
     onChange={(e) => setJd(e.target.value)}
-    rows="15"
+    rows="25"
     className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 text-sm resize-none"
     placeholder="Paste job description here..."
   />
