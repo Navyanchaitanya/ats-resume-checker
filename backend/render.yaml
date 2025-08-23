@@ -1,22 +1,12 @@
 services:
   - type: web
-    name: ats-resume-checker-backend
+    name: ats-backend
     env: python
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
-      - key: FLASK_ENV
-        value: production
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DATABASE_URL
-        fromDatabase:
-          name: ats-resume-checker-db
-          property: connectionString
-
-databases:
-  - name: ats-resume-checker-db
-    databaseName: ats_resume_checker
-    user: ats_user
+      - key: PYTHON_VERSION
+        value: 3.10.14
