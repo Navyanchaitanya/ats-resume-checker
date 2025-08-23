@@ -16,15 +16,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret")
 
 # ✅ Prefer Render Postgres, fallback to SQLite (for local dev)
-DATABASE_URL = os.getenv("postgresql://ats_db_t6xh_user:hpdabIoEwXf6UgW8mBfrhH6uKTKTPwNr@dpg-d2kl64buibrs73eah07g-a.oregon-postgres.render.com/ats_db_t6xh")
+# ✅ Prefer Render Postgres, fallback to SQLite (for local dev)
+DATABASE_URL = os.getenv("DATABASE_URL")  # Render provides this automatically
+
 if DATABASE_URL:
-    # Render gives sslmode=require in DATABASE_URL sometimes; ensure SQLAlchemy can parse
+    # Ensure compatibility
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data/database.db')
+
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
