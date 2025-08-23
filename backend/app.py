@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from models import db, ResumeAnalysis, User
 from auth import auth_bp, verify_token
 import PyPDF2
@@ -9,17 +8,31 @@ import json
 import os
 
 app = Flask(__name__)
-CORS(app)
 
-# ✅ Configure SQLite path inside /data
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data/database.db')
+# ✅ Load configs from environment
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret")
+
+# ✅ Prefer Render Postgres, fallback to SQLite (for local dev)
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    # Render gives sslmode=require in DATABASE_URL sometimes; ensure SQLAlchemy can parse
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data/database.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'super-secret-key'  # used for JWT
 
+# ✅ Init DB
 db.init_app(app)
 
-# ✅ Register blueprint with /api prefix
+# ✅ CORS – allow only your frontend (Vercel domain)
+frontend_origin = os.getenv("FRONTEND_URL", "*")
+CORS(app, resources={r"/*": {"origins": [frontend_origin]}})
+
+# ✅ Register auth blueprint
 app.register_blueprint(auth_bp, url_prefix='/api')
 
 # ✅ Extract text from PDF
@@ -38,7 +51,7 @@ def extract_text_from_pdf(file):
 def home():
     return "✅ ATS Resume Checker backend is running"
 
-# ✅ UPDATED analyze route with Bearer token fix
+# ✅ Resume analysis route
 @app.route('/analyze', methods=['POST'])
 def analyze_resume():
     if 'resume' not in request.files or 'job_description' not in request.form:
@@ -47,7 +60,7 @@ def analyze_resume():
     resume_file = request.files['resume']
     job_description = request.form['job_description']
 
-    # ✅ Get token and extract actual JWT
+    # Extract token
     auth_header = request.headers.get('Authorization', '')
     token = auth_header.replace('Bearer ', '').strip()
 
@@ -57,23 +70,23 @@ def analyze_resume():
     if not resume_text or not jd_text:
         return jsonify({'error': 'Empty text content'}), 400
 
-    # ✅ Get score
+    # Run scoring
     score_data = overall_score(resume_text, jd_text)
-    print("🔍 Raw score_data returned:", score_data)
+    print("🔍 Raw score_data:", score_data)
 
     try:
         total_score = float(score_data.get("total", 0))
     except Exception:
         total_score = 0.0
 
-    # ✅ Verify user from token
+    # Verify token
     user_id = None
     if token:
         user_id = verify_token(token)
         if not user_id:
             print("⚠️ Invalid token")
 
-    # ✅ Save to database
+    # Save result to DB
     analysis = ResumeAnalysis(
         filename=resume_file.filename,
         resume_text=resume_text,
@@ -98,6 +111,7 @@ def analyze_resume():
         "filename": resume_file.filename
     })
 
+# ✅ Fetch last 10 results
 @app.route('/results', methods=['GET'])
 def get_results():
     results = ResumeAnalysis.query.order_by(ResumeAnalysis.id.desc()).limit(10).all()
@@ -121,6 +135,7 @@ def get_results():
     return jsonify(formatted)
 
 if __name__ == '__main__':
+    # ✅ For local dev only; in Render run init_db.py once instead
     with app.app_context():
         db.create_all()
     app.run(debug=True)
