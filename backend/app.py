@@ -7,8 +7,8 @@ from scorer import overall_score
 import json
 import os
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "dev-secret")
 
 # ✅ Prefer Render Postgres, fallback to SQLite (for local dev)
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("postgresql://ats_db_t6xh_user:hpdabIoEwXf6UgW8mBfrhH6uKTKTPwNr@dpg-d2kl64buibrs73eah07g-a.oregon-postgres.render.com/ats_db_t6xh")
 if DATABASE_URL:
     # Render gives sslmode=require in DATABASE_URL sometimes; ensure SQLAlchemy can parse
     if DATABASE_URL.startswith("postgres://"):
@@ -38,6 +38,69 @@ CORS(app, resources={r"/*": {"origins": [frontend_origin]}})
 # ✅ Register auth blueprint
 app.register_blueprint(auth_bp, url_prefix='/api')
 
+
+# -----------------------------
+# 👤 USER PROFILE ROUTES
+# -----------------------------
+@app.route('/api/profile', methods=['GET'])
+def get_profile():
+    """Return the logged-in user's profile"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "").strip()
+
+    user_id = verify_token(token)
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "profession": user.profession,
+        "location": user.location,
+        "bio": user.bio,
+    })
+
+
+@app.route('/api/profile', methods=['PUT'])
+def update_profile():
+    """Update the logged-in user's profile"""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "").strip()
+
+    user_id = verify_token(token)
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.json or {}
+
+    # ✅ Update allowed fields
+    user.name = data.get("name", user.name)
+    user.profession = data.get("profession", user.profession)
+    user.location = data.get("location", user.location)
+    user.bio = data.get("bio", user.bio)
+
+    db.session.commit()
+
+    return jsonify({
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "profession": user.profession,
+        "location": user.location,
+        "bio": user.bio,
+    })
+# -----------------------------
+
+
 # ✅ Extract text from PDF
 def extract_text_from_pdf(file):
     try:
@@ -50,9 +113,11 @@ def extract_text_from_pdf(file):
         print("❌ Error reading PDF:", e)
         return ""
 
+
 @app.route('/')
 def home():
     return "✅ ATS Resume Checker backend is running"
+
 
 # ✅ Resume analysis route
 @app.route('/analyze', methods=['POST'])
@@ -114,6 +179,7 @@ def analyze_resume():
         "filename": resume_file.filename
     })
 
+
 # ✅ Fetch last 10 results
 @app.route('/results', methods=['GET'])
 def get_results():
@@ -136,6 +202,7 @@ def get_results():
             }
         })
     return jsonify(formatted)
+
 
 if __name__ == '__main__':
     # ✅ For local dev only; in Render run init_db.py once instead

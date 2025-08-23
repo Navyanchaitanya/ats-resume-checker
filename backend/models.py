@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = "user"
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -11,7 +13,13 @@ class User(db.Model):
     location = db.Column(db.String(100))
     bio = db.Column(db.Text)
 
+    # ✅ relationship: a user can have many resume analyses
+    analyses = db.relationship("ResumeAnalysis", backref="user", lazy=True)
+
+
 class ResumeAnalysis(db.Model):
+    __tablename__ = "resume_analysis"
+
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(120))
     resume_text = db.Column(db.Text)
@@ -25,4 +33,6 @@ class ResumeAnalysis(db.Model):
     grammar_issues = db.Column(db.Text)
     matched_keywords = db.Column(db.Text)
     missing_keywords = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    # ✅ foreign key linking to User
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
