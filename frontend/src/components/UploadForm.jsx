@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
+
+// ✅ API base URL from .env (falls back to localhost if not set)
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const UploadForm = ({ onScoreReceived }) => {
   const [resume, setResume] = useState(null);
@@ -21,7 +24,10 @@ const UploadForm = ({ onScoreReceived }) => {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/analyze", formData);
+      // ✅ Use API_BASE here
+      const res = await axios.post(`${API_BASE}/analyze`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       onScoreReceived(res.data.score);
     } catch (err) {
       console.error(err);
@@ -50,20 +56,22 @@ const UploadForm = ({ onScoreReceived }) => {
       <div>
         <label className="block font-semibold">Job Description</label>
         <textarea
-    value={jd}
-    onChange={(e) => setJd(e.target.value)}
-    rows="25"
-    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 text-sm resize-none"
-    placeholder="Paste job description here..."
-  />
-</div>
+          value={jd}
+          onChange={(e) => setJd(e.target.value)}
+          rows="25"
+          className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 text-sm resize-none"
+          placeholder="Paste job description here..."
+        />
+      </div>
       <motion.button
         whileTap={{ scale: 0.95 }}
         whileHover={{ scale: 1.05 }}
         type="submit"
         disabled={loading}
         className={`w-full text-white py-2 rounded transition duration-300 ease-in-out ${
-          loading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
+          loading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
         }`}
       >
         {loading ? "Analyzing..." : "🎯 Get My Score"}
