@@ -7,7 +7,7 @@ docx2txt==0.8
 uuid==1.30
 
 
-spacy==3.7.2
+spacy==3.7.2 --prefer-binary
 transformers==4.41.1
 sentence-transformers==2.7.0
 

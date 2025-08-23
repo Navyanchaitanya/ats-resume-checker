@@ -6,6 +6,9 @@ import PyPDF2
 from scorer import overall_score
 import json
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
 
